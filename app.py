@@ -13,16 +13,18 @@ from urllib.parse import urlparse, urlunparse
 from flask import Flask, render_template, request, abort, Response, redirect
 import requests
 import logging
+import json 
 
 app = Flask(__name__.split('.')[0])
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 # APPROVED_HOSTS = set(["60.243.77.231"])
 CHUNK_SIZE = 1024
 LOG = logging.getLogger("app.py")
 
-@app.route('/',methods=['GET','POST'])
+
+@app.route('/',methods=["GET"])
 def intro():
-    return "Its Working!!!"
+    return "its working with update!!!", 200
 
 @app.route('/<path:url>', methods=["GET", "POST"])
 def root(url):
@@ -54,7 +56,7 @@ def proxy(url):
         return redirect(urlunparse(parts._replace(path=parts.path+'/')))
 
     LOG.debug("%s %s with headers: %s", request.method, url, request.headers)
-    r = make_request(url, request.method, dict(request.headers), request.form)
+    r = make_request(url, request.method, dict(request.headers), json.dumps(request.json))
     LOG.debug("Got %s response from %s",r.status_code, url)
     headers = dict(r.raw.headers)
     def generate():
@@ -109,4 +111,4 @@ def proxied_request_info(proxy_url):
 
 
 if __name__=="__main__":
-  app.run(host="0.0.0.0",port="12000")
+  app.run(host="0.0.0.0",port="12000",debug=True)
