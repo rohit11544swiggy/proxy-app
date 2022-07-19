@@ -7,7 +7,6 @@ Modified from original to support both GET and POST, status code passthrough, he
 Usage: http://hostname:port/p/(URL to be proxied, minus protocol)
 For example: http://localhost:5000/p/www.google.com
 """
-from crypt import methods
 import re
 from urllib.parse import urlparse, urlunparse
 from flask import Flask, render_template, request, abort, Response, redirect
@@ -21,11 +20,10 @@ logging.basicConfig(level=logging.DEBUG)
 CHUNK_SIZE = 1024
 LOG = logging.getLogger("app.py")
 
-
 @app.route('/',methods=["GET"])
 def intro():
     return "its working with update!!!", 200
-
+    
 @app.route('/<path:url>', methods=["GET", "POST"])
 def root(url):
     # If referred from a proxy request, then redirect to a URL with the proxy prefix.
@@ -56,7 +54,12 @@ def proxy(url):
         return redirect(urlunparse(parts._replace(path=parts.path+'/')))
 
     LOG.debug("%s %s with headers: %s", request.method, url, request.headers)
-    r = make_request(url, request.method, dict(request.headers), json.dumps(request.json))
+
+    try:
+      r = make_request(url, request.method, dict(request.headers), json.dumps(request.json))
+    except:
+      r = make_request(url, request.method, dict(request.headers))
+
     LOG.debug("Got %s response from %s",r.status_code, url)
     headers = dict(r.raw.headers)
     def generate():
